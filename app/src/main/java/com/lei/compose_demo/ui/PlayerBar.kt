@@ -1,6 +1,7 @@
 package com.lei.compose_demo.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +35,7 @@ import com.lei.compose_demo.data.Track
  * @param playerState 播放器状态。
  * @param onTogglePlay 点击播放/暂停。
  * @param onNext 点击下一首。
+ * @param onOpenDetail 打开播放详情页。
  */
 @Composable
 fun PlayerBar(
@@ -41,6 +43,7 @@ fun PlayerBar(
     playerState: PlayerState,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
+    onOpenDetail: () -> Unit,
 ) {
     // 播放条背景色。
     val barColor = Color(0xFF151922)
@@ -62,7 +65,11 @@ fun PlayerBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onOpenDetail)
+            ) {
                 Text(
                     text = currentTrack?.title ?: "未选择歌曲",
                     color = titleColor,

@@ -1,6 +1,7 @@
 package com.lei.compose_demo.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,10 +37,13 @@ import com.lei.compose_demo.state.MusicViewModel
  * 音乐主页面。
  *
  * @param viewModel 页面 ViewModel。
+ * @param onOpenDetail 打开播放详情页事件。
  */
 @Composable
 fun MusicScreen(
     viewModel: MusicViewModel = viewModel(),
+    // 打开播放详情页事件。
+    onOpenDetail: () -> Unit,
 ) {
     // 当前 UI 状态。
     val uiState = viewModel.uiState
@@ -54,8 +58,9 @@ fun MusicScreen(
             PlayerBar(
                 currentTrack = uiState.currentTrack,
                 playerState = uiState.playerState,
-                onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
+                onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },    
                 onNext = { viewModel.onEvent(MusicEvent.Next) },
+                onOpenDetail = onOpenDetail,
             )
         }
     ) { innerPadding ->
@@ -68,7 +73,10 @@ fun MusicScreen(
         ) {
             HeaderSection()
             Spacer(modifier = Modifier.height(16.dp))
-            HeroCard(cardColor = cardColor)
+            HeroCard(
+                cardColor = cardColor,
+                onOpenDetail = onOpenDetail,
+            )
             Spacer(modifier = Modifier.height(20.dp))
             SectionTitle(title = "热门歌曲")
             Spacer(modifier = Modifier.height(12.dp))
@@ -136,10 +144,12 @@ private fun HeaderSection() {
  * 推荐大卡片区域。
  *
  * @param cardColor 卡片背景色。
+ * @param onOpenDetail 打开播放详情页事件。
  */
 @Composable
 private fun HeroCard(
     cardColor: Color,
+    onOpenDetail: () -> Unit,
 ) {
     // 渐变起始色。
     val gradientStart = Color(0xFF3B82F6)
@@ -147,7 +157,9 @@ private fun HeroCard(
     val gradientEnd = Color(0xFF22C55E)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenDetail),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         shape = MaterialTheme.shapes.large
     ) {

@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.lei.compose_demo.ui.MusicScreen
+import com.lei.compose_demo.ui.ComposeDemoNav
 import com.lei.compose_demo.ui.theme.Compose_demoTheme
 
 /**
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 fun Compose_demoApp() {
-    MusicScreen()
+    ComposeDemoNav()
 }
 
 /**

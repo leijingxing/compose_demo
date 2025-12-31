@@ -15,6 +15,11 @@ sealed class MusicEvent {
     data object Next : MusicEvent()
 
     /**
+     * 上一首事件。
+     */
+    data object Previous : MusicEvent()
+
+    /**
      * 选择指定歌曲事件。
      *
      * @param trackId 被选中的歌曲 ID。

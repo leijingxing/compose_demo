@@ -28,6 +28,7 @@ class MusicViewModel : ViewModel() {
         when (event) {
             MusicEvent.TogglePlay -> togglePlay()
             MusicEvent.Next -> selectNextTrack()
+            MusicEvent.Previous -> selectPreviousTrack()
             is MusicEvent.SelectTrack -> selectTrackById(event.trackId)
         }
     }
@@ -85,6 +86,31 @@ class MusicViewModel : ViewModel() {
                 isPlaying = true,
                 progress = 0f,
                 currentTrackId = nextTrack?.id,
+            )
+        )
+    }
+
+    /**
+     * 选择上一首歌曲。
+     */
+    private fun selectPreviousTrack() {
+        // 当前歌曲列表。
+        val tracks = uiState.tracks
+        // 当前歌曲对象。
+        val currentTrack = uiState.currentTrack
+        // 当前歌曲索引。
+        val currentIndex = tracks.indexOf(currentTrack)
+        // 上一个索引，超出则回到最后。
+        val previousIndex = if (currentIndex > 0) currentIndex - 1 else tracks.lastIndex
+        // 上一个歌曲对象。
+        val previousTrack = tracks.getOrNull(previousIndex)
+        // 更新 UI 状态。
+        uiState = uiState.copy(
+            currentTrack = previousTrack,
+            playerState = uiState.playerState.copy(
+                isPlaying = true,
+                progress = 0f,
+                currentTrackId = previousTrack?.id,
             )
         )
     }
