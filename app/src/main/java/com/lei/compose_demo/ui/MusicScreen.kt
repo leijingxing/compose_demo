@@ -1,5 +1,14 @@
 package com.lei.compose_demo.ui
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lei.compose_demo.state.MusicEvent
 import com.lei.compose_demo.state.MusicViewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
 
 /**
  * 音乐主页面。
@@ -51,43 +63,80 @@ fun MusicScreen(
     val backgroundColor = Color(0xFF0F1115)
     // 卡片背景色。
     val cardColor = Color(0xFF171A21)
-
-    Scaffold(
-        containerColor = backgroundColor,
-        bottomBar = {
-            PlayerBar(
-                currentTrack = uiState.currentTrack,
-                playerState = uiState.playerState,
-                onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },    
-                onNext = { viewModel.onEvent(MusicEvent.Next) },
-                onOpenDetail = onOpenDetail,
-            )
+    // 页面进入动画状态。
+    val visibleState = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
+    // 需要申请的权限名称。
+    val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+    // 权限申请回调。
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // 是否授予读取音频权限。
+        if (granted) {
+            viewModel.onEvent(MusicEvent.ScanLocalMusic)
         }
-    ) { innerPadding ->
-        // 页面内容容器。
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-        ) {
-            HeaderSection()
-            Spacer(modifier = Modifier.height(16.dp))
-            HeroCard(
-                cardColor = cardColor,
-                onOpenDetail = onOpenDetail,
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            SectionTitle(title = "热门歌曲")
-            Spacer(modifier = Modifier.height(12.dp))
-            TrackList(
-                tracks = uiState.tracks,
-                currentTrack = uiState.currentTrack,
-                onTrackClick = { clickedTrack ->
-                    // 被点击的歌曲。
-                    viewModel.onEvent(MusicEvent.SelectTrack(clickedTrack.id))
+    }
+
+    AnimatedVisibility(
+        visibleState = visibleState,
+        enter = fadeIn() + slideInVertically(initialOffsetY = { offset ->
+            // 进入时的位移基准。
+            offset / 3
+        }),
+        exit = fadeOut() + slideOutVertically(targetOffsetY = { offset ->
+            // 退出时的位移基准。
+            offset / 3
+        })
+    ) {
+        Scaffold(
+            containerColor = backgroundColor,
+            bottomBar = {
+                PlayerBar(
+                    currentTrack = uiState.currentTrack,
+                    playerState = uiState.playerState,
+                    onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
+                    onNext = { viewModel.onEvent(MusicEvent.Next) },
+                    onOpenDetail = onOpenDetail,
+                )
+            }
+        ) { innerPadding ->
+            // 页面内容容器。
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 20.dp)
+            ) {
+                HeaderSection()
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { permissionLauncher.launch(storagePermission) }
+                ) {
+                    Text(text = "扫描本地音乐")
                 }
-            )
+                Spacer(modifier = Modifier.height(16.dp))
+                HeroCard(
+                    cardColor = cardColor,
+                    onOpenDetail = onOpenDetail,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                SectionTitle(title = "热门歌曲")
+                Spacer(modifier = Modifier.height(12.dp))
+                TrackList(
+                    tracks = uiState.tracks,
+                    currentTrack = uiState.currentTrack,
+                    onTrackClick = { clickedTrack ->
+                        // 被点击的歌曲。
+                        viewModel.onEvent(MusicEvent.SelectTrack(clickedTrack.id))
+                    }
+                )
+            }
         }
     }
 }

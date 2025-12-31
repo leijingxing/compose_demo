@@ -3,6 +3,7 @@ package com.lei.compose_demo.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -22,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,6 +56,12 @@ fun PlayerBar(
     val subtitleColor = Color(0xFFA1A1AA)
     // 进度条主色。
     val progressColor = Color(0xFF3B82F6)
+    // 封面占位背景色。
+    val coverColor = Color(0xFF2A2F3A)
+    // 已播放时间文本。
+    val elapsedText = formatTime(playerState.positionSeconds)
+    // 总时长文本。
+    val totalText = formatTime(playerState.durationSeconds)
 
     Column(
         modifier = Modifier
@@ -65,21 +74,31 @@ fun PlayerBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable(onClick = onOpenDetail)
+                    .clickable(onClick = onOpenDetail),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = currentTrack?.title ?: "未选择歌曲",
-                    color = titleColor,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .background(coverColor)
                 )
-                Text(
-                    text = currentTrack?.artist ?: "请选择一首歌曲",
-                    color = subtitleColor,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = currentTrack?.title ?: "未选择歌曲",
+                        color = titleColor,
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                    Text(
+                        text = currentTrack?.artist ?: "请选择一首歌曲",
+                        color = subtitleColor,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 IconButton(onClick = onTogglePlay) {
@@ -106,5 +125,36 @@ fun PlayerBar(
             color = progressColor,
             trackColor = progressColor.copy(alpha = 0.2f)
         )
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = elapsedText,
+                color = subtitleColor,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = totalText,
+                color = subtitleColor,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
     }
+}
+
+/**
+ * 格式化时间为 mm:ss。
+ *
+ * @param seconds 总秒数。
+ */
+private fun formatTime(seconds: Int): String {
+    // 安全的秒数。
+    val safeSeconds = if (seconds < 0) 0 else seconds
+    // 分钟数。
+    val minutes = safeSeconds / 60
+    // 剩余秒数。
+    val remainSeconds = safeSeconds % 60
+    return "%d:%02d".format(minutes, remainSeconds)
 }

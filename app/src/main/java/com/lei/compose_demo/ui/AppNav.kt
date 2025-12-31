@@ -62,6 +62,10 @@ fun ComposeDemoNavGraph(
                 playerState = musicViewModel.uiState.playerState,
                 onBack = { navController.popBackStack() },
                 onTogglePlay = { musicViewModel.onEvent(MusicEvent.TogglePlay) },
+                onSeekTo = { progress ->
+                    // 拖拽得到的进度值。
+                    musicViewModel.onEvent(MusicEvent.SeekTo(progress))
+                },
                 onPrevious = { musicViewModel.onEvent(MusicEvent.Previous) },
                 onNext = { musicViewModel.onEvent(MusicEvent.Next) },
             )
