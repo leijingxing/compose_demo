@@ -2,8 +2,12 @@ package com.lei.compose_demo.ui
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -43,19 +47,22 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.lei.compose_demo.state.MusicEvent
 import com.lei.compose_demo.state.MusicViewModel
-import androidx.activity.compose.rememberLauncherForActivityResult
 
 /**
  * 音乐主页面。
  *
  * @param viewModel 页面 ViewModel。
  * @param onOpenDetail 打开播放详情页事件。
+ * @param sharedTransitionScope 共享元素转场作用域。
+ * @param animatedVisibilityScope 动画可见性作用域。
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MusicScreen(
     viewModel: MusicViewModel = viewModel(),
-    // 打开播放详情页事件。
     onOpenDetail: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     // 当前 UI 状态。
     val uiState = viewModel.uiState
@@ -103,6 +110,8 @@ fun MusicScreen(
                     onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
                     onNext = { viewModel.onEvent(MusicEvent.Next) },
                     onOpenDetail = onOpenDetail,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
                 )
             }
         ) { innerPadding ->

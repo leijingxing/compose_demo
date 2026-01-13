@@ -1,5 +1,7 @@
 package com.lei.compose_demo.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -41,34 +43,41 @@ fun ComposeDemoNav() {
  * @param navController 导航控制器。
  * @param musicViewModel 共享的音乐页面 ViewModel。
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ComposeDemoNavGraph(
     navController: NavHostController,
     musicViewModel: MusicViewModel,
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = AppRoute.MUSIC
-    ) {
-        composable(AppRoute.MUSIC) {
-            MusicScreen(
-                viewModel = musicViewModel,
-                onOpenDetail = { navController.navigate(AppRoute.PLAYER) },
-            )
-        }
-        composable(AppRoute.PLAYER) {
-            PlayerDetailScreen(
-                currentTrack = musicViewModel.uiState.currentTrack,
-                playerState = musicViewModel.uiState.playerState,
-                onBack = { navController.popBackStack() },
-                onTogglePlay = { musicViewModel.onEvent(MusicEvent.TogglePlay) },
-                onSeekTo = { progress ->
-                    // 拖拽得到的进度值。
-                    musicViewModel.onEvent(MusicEvent.SeekTo(progress))
-                },
-                onPrevious = { musicViewModel.onEvent(MusicEvent.Previous) },
-                onNext = { musicViewModel.onEvent(MusicEvent.Next) },
-            )
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = AppRoute.MUSIC
+        ) {
+            composable(AppRoute.MUSIC) {
+                MusicScreen(
+                    viewModel = musicViewModel,
+                    onOpenDetail = { navController.navigate(AppRoute.PLAYER) },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable
+                )
+            }
+            composable(AppRoute.PLAYER) {
+                PlayerDetailScreen(
+                    currentTrack = musicViewModel.uiState.currentTrack,
+                    playerState = musicViewModel.uiState.playerState,
+                    onBack = { navController.popBackStack() },
+                    onTogglePlay = { musicViewModel.onEvent(MusicEvent.TogglePlay) },
+                    onSeekTo = { progress ->
+                        // 拖拽得到的进度值。
+                        musicViewModel.onEvent(MusicEvent.SeekTo(progress))
+                    },
+                    onPrevious = { musicViewModel.onEvent(MusicEvent.Previous) },
+                    onNext = { musicViewModel.onEvent(MusicEvent.Next) },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this@composable
+                )
+            }
         }
     }
 }

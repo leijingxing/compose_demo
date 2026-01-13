@@ -1,5 +1,8 @@
 package com.lei.compose_demo.ui
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,7 +42,10 @@ import com.lei.compose_demo.data.Track
  * @param onTogglePlay 点击播放/暂停。
  * @param onNext 点击下一首。
  * @param onOpenDetail 打开播放详情页。
+ * @param sharedTransitionScope 共享元素转场作用域。
+ * @param animatedVisibilityScope 动画可见性作用域。
  */
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PlayerBar(
     currentTrack: Track?,
@@ -47,6 +53,8 @@ fun PlayerBar(
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onOpenDetail: () -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     // 播放条背景色。
     val barColor = Color(0xFF151922)
@@ -80,11 +88,22 @@ fun PlayerBar(
                     .clickable(onClick = onOpenDetail),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // 封面 Box
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(MaterialTheme.shapes.small)
                         .background(coverColor)
+                        .let { modifier ->
+                            if (currentTrack != null) {
+                                with(sharedTransitionScope) {
+                                    modifier.sharedElement(
+                                        state = rememberSharedContentState(key = "cover-${currentTrack.id}"),
+                                        animatedVisibilityScope = animatedVisibilityScope
+                                    )
+                                }
+                            } else modifier
+                        }
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
