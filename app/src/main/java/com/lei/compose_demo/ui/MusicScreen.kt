@@ -61,6 +61,7 @@ import com.lei.compose_demo.state.MusicViewModel
 fun MusicScreen(
     viewModel: MusicViewModel = viewModel(),
     onOpenDetail: () -> Unit,
+    onOpenSearch: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
@@ -70,10 +71,7 @@ fun MusicScreen(
     val backgroundColor = Color(0xFF0F1115)
     // 卡片背景色。
     val cardColor = Color(0xFF171A21)
-    // 页面进入动画状态。
-    val visibleState = remember {
-        MutableTransitionState(false).apply { targetState = true }
-    }
+
     // 需要申请的权限名称。
     val storagePermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_AUDIO
@@ -90,62 +88,50 @@ fun MusicScreen(
         }
     }
 
-    AnimatedVisibility(
-        visibleState = visibleState,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { offset ->
-            // 进入时的位移基准。
-            offset / 3
-        }),
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { offset ->
-            // 退出时的位移基准。
-            offset / 3
-        })
-    ) {
-        Scaffold(
-            containerColor = backgroundColor,
-            bottomBar = {
-                PlayerBar(
-                    currentTrack = uiState.currentTrack,
-                    playerState = uiState.playerState,
-                    onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
-                    onNext = { viewModel.onEvent(MusicEvent.Next) },
-                    onOpenDetail = onOpenDetail,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope
-                )
-            }
-        ) { innerPadding ->
-            // 页面内容容器。
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 20.dp)
+    Scaffold(
+        containerColor = backgroundColor,
+        bottomBar = {
+            PlayerBar(
+                currentTrack = uiState.currentTrack,
+                playerState = uiState.playerState,
+                onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
+                onNext = { viewModel.onEvent(MusicEvent.Next) },
+                onOpenDetail = onOpenDetail,
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope
+            )
+        }
+    ) { innerPadding ->
+        // 页面内容容器。
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = 20.dp)
+        ) {
+            HeaderSection(onSearchClick = onOpenSearch)
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = { permissionLauncher.launch(storagePermission) }
             ) {
-                HeaderSection()
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = { permissionLauncher.launch(storagePermission) }
-                ) {
-                    Text(text = "扫描本地音乐")
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                HeroCard(
-                    cardColor = cardColor,
-                    onOpenDetail = onOpenDetail,
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                SectionTitle(title = "热门歌曲")
-                Spacer(modifier = Modifier.height(12.dp))
-                TrackList(
-                    tracks = uiState.tracks,
-                    currentTrack = uiState.currentTrack,
-                    onTrackClick = { clickedTrack ->
-                        // 被点击的歌曲。
-                        viewModel.onEvent(MusicEvent.SelectTrack(clickedTrack.id))
-                    }
-                )
+                Text(text = "扫描本地音乐")
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            HeroCard(
+                cardColor = cardColor,
+                onOpenDetail = onOpenDetail,
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            SectionTitle(title = "热门歌曲")
+            Spacer(modifier = Modifier.height(12.dp))
+            TrackList(
+                tracks = uiState.tracks,
+                currentTrack = uiState.currentTrack,
+                onTrackClick = { clickedTrack ->
+                    // 被点击的歌曲。
+                    viewModel.onEvent(MusicEvent.SelectTrack(clickedTrack.id))
+                }
+            )
         }
     }
 }
@@ -154,7 +140,9 @@ fun MusicScreen(
  * 顶部标题区域。
  */
 @Composable
-private fun HeaderSection() {
+private fun HeaderSection(
+    onSearchClick: () -> Unit,
+) {
     // 标题颜色。
     val titleColor = Color.White
     // 副标题颜色。
@@ -181,7 +169,8 @@ private fun HeaderSection() {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "搜索",
-                tint = Color.White
+                tint = Color.White,
+                modifier = Modifier.clickable(onClick = onSearchClick)
             )
             Icon(
                 imageVector = Icons.Default.NotificationsNone,

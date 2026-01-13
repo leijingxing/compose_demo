@@ -2,6 +2,8 @@ package com.lei.compose_demo.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -17,8 +19,12 @@ import com.lei.compose_demo.state.MusicViewModel
 object AppRoute {
     // 音乐主页路由。
     const val MUSIC = "music"
+
     // 播放详情页路由。
     const val PLAYER = "player"
+
+    // 搜索页面路由。
+    const val SEARCH = "search"
 }
 
 /**
@@ -52,12 +58,17 @@ fun ComposeDemoNavGraph(
     SharedTransitionLayout {
         NavHost(
             navController = navController,
-            startDestination = AppRoute.MUSIC
+            startDestination = AppRoute.MUSIC,
+            enterTransition = { fadeIn() },
+            exitTransition = { fadeOut() },
+            popEnterTransition = { fadeIn() },
+            popExitTransition = { fadeOut() }
         ) {
             composable(AppRoute.MUSIC) {
                 MusicScreen(
                     viewModel = musicViewModel,
                     onOpenDetail = { navController.navigate(AppRoute.PLAYER) },
+                    onOpenSearch = { navController.navigate(AppRoute.SEARCH) },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this@composable
                 )
@@ -76,6 +87,12 @@ fun ComposeDemoNavGraph(
                     onNext = { musicViewModel.onEvent(MusicEvent.Next) },
                     sharedTransitionScope = this@SharedTransitionLayout,
                     animatedVisibilityScope = this@composable
+                )
+            }
+            composable(AppRoute.SEARCH) {
+                SearchScreen(
+                    viewModel = musicViewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

@@ -11,13 +11,13 @@ package com.lei.compose_demo.data
  */
 data class PlayerState(
     // 是否正在播放。
-    val isPlaying: Boolean,
+    val isPlaying: Boolean = false,
     // 播放进度（0.0 ~ 1.0）。
-    val progress: Float,
+    val progress: Float = 0f,
     // 当前播放位置（秒）。
-    val positionSeconds: Int,
+    val positionSeconds: Int = 0,
     // 当前歌曲总时长（秒）。
-    val durationSeconds: Int,
+    val durationSeconds: Int = 0,
     // 当前播放的歌曲 ID。
-    val currentTrackId: String?,
+    val currentTrackId: String? = null,
 )

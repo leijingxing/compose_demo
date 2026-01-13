@@ -6,15 +6,14 @@ import com.lei.compose_demo.data.Track
 /**
  * 音乐页面 UI 状态。
  *
- * @param tracks 页面展示的歌曲列表。
- * @param currentTrack 当前选中的歌曲。
- * @param playerState 播放器状态。
+ * @property tracks 歌曲列表。
+ * @property currentTrack 当前播放歌曲。
+ * @property playerState 播放器状态。
+ * @property searchResults 搜索结果列表。
  */
 data class MusicUiState(
-    // 页面展示的歌曲列表。
-    val tracks: List<Track>,
-    // 当前选中的歌曲。
-    val currentTrack: Track?,
-    // 播放器状态。
-    val playerState: PlayerState,
+    val tracks: List<Track> = emptyList(),
+    val currentTrack: Track? = null,
+    val playerState: PlayerState = PlayerState(),
+    val searchResults: List<Track> = emptyList(),
 )

@@ -72,82 +72,73 @@ fun PlayerDetailScreen(
     // 系统返回键处理
     BackHandler(onBack = onBack)
 
-    // 页面进入动画状态
-    val visibleState = remember {
-        MutableTransitionState(false).apply { targetState = true }
-    }
-
     // 页面背景渐变
     val backgroundBrush = remember { Brush.verticalGradient(colors = BackgroundColors) }
 
     // Pager 状态：2页（0: 主页, 1: 歌词）
     val pagerState = rememberPagerState(pageCount = { 2 })
 
-    AnimatedVisibility(
-        visibleState = visibleState,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { it / 3 }),
-        exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 3 })
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundBrush)
+            .systemBarsPadding() // 适配系统状态栏
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        // 1. 公共顶部导航栏 (Padding 移到这里处理，保证 Pager 全宽或者统一 Padding)
+        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+            PlayerTopBar(onBack = onBack)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 2. 页面切换区域
+        HorizontalPager(
+            state = pagerState,
             modifier = Modifier
-                .fillMaxSize()
-                .background(backgroundBrush)
-                .systemBarsPadding() // 适配系统状态栏
-                .padding(vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .weight(1f)
+                .fillMaxWidth()
+        ) { page ->
+            when (page) {
+                0 -> PlayerMainPage(
+                    currentTrack = currentTrack,
+                    playerState = playerState,
+                    onTogglePlay = onTogglePlay,
+                    onSeekTo = onSeekTo,
+                    onPrevious = onPrevious,
+                    onNext = onNext,
+                    sharedTransitionScope = sharedTransitionScope,
+                    animatedVisibilityScope = animatedVisibilityScope
+                )
+
+                1 -> PlayerLyricsPage(
+                    playerState = playerState
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 3. 页面指示器 (Dots)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(20.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // 1. 公共顶部导航栏 (Padding 移到这里处理，保证 Pager 全宽或者统一 Padding)
-            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                PlayerTopBar(onBack = onBack)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 2. 页面切换区域
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) { page ->
-                when (page) {
-                    0 -> PlayerMainPage(
-                        currentTrack = currentTrack,
-                        playerState = playerState,
-                        onTogglePlay = onTogglePlay,
-                        onSeekTo = onSeekTo,
-                        onPrevious = onPrevious,
-                        onNext = onNext,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = animatedVisibilityScope
-                    )
-                    1 -> PlayerLyricsPage(
-                        playerState = playerState
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 3. 页面指示器 (Dots)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(20.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(2) { iteration ->
-                    val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.2f)
-                    val size = if (pagerState.currentPage == iteration) 8.dp else 6.dp
-                    Box(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .size(size)
-                    )
-                }
+            repeat(2) { iteration ->
+                val color =
+                    if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.2f)
+                val size = if (pagerState.currentPage == iteration) 8.dp else 6.dp
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(size)
+                )
             }
         }
     }

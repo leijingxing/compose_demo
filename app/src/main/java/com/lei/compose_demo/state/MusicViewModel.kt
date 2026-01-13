@@ -69,7 +69,18 @@ class MusicViewModel(
             is MusicEvent.SeekTo -> seekToProgress(event.progress)
             MusicEvent.ScanLocalMusic -> scanLocalMusic()
             is MusicEvent.SelectTrack -> selectTrackById(event.trackId)
+            is MusicEvent.SearchTracks -> searchTracks(event.query)
         }
+    }
+
+    /**
+     * 搜索歌曲。
+     *
+     * @param query 搜索关键词。
+     */
+    private fun searchTracks(query: String) {
+        val results = repository.search(query)
+        uiState = uiState.copy(searchResults = results)
     }
 
     /**
