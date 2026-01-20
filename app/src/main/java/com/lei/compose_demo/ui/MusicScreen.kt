@@ -71,7 +71,8 @@ fun MusicScreen(
     onOpenDetail: () -> Unit,
     onOpenSearch: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     // 当前 UI 状态。
     val uiState = viewModel.uiState
@@ -96,96 +97,81 @@ fun MusicScreen(
         }
     }
 
-    Scaffold(
-        containerColor = backgroundColor,
-        bottomBar = {
-            PlayerBar(
-                currentTrack = uiState.currentTrack,
-                playerState = uiState.playerState,
-                onTogglePlay = { viewModel.onEvent(MusicEvent.TogglePlay) },
-                onNext = { viewModel.onEvent(MusicEvent.Next) },
+    // 使用 LazyColumn 让整个页面可滚动
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .padding(contentPadding) // 应用来自父容器的 padding (包含 status bar 和 bottom bar)
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // 顶部间隔
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // 头部区域
+        item {
+            HeaderSection(onSearchClick = onOpenSearch)
+        }
+
+        // Hero 卡片
+        item {
+            HeroCard(
+                cardColor = cardColor,
                 onOpenDetail = onOpenDetail,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope
             )
-        },
-        contentWindowInsets = WindowInsets.statusBars
-    ) { innerPadding ->
-        // 使用 LazyColumn 让整个页面可滚动
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 顶部间隔
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
+        }
 
-            // 头部区域
-            item {
-                HeaderSection(onSearchClick = onOpenSearch)
+        // 功能操作区域 (如扫描音乐)
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SectionTitle(title = "我的音乐")
+                
+                FilledTonalButton(
+                    onClick = { permissionLauncher.launch(storagePermission) },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = Color(0xFF2A2F3A),
+                        contentColor = Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.GraphicEq,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "扫描本地", style = MaterialTheme.typography.labelMedium)
+                }
             }
+        }
 
-            // Hero 卡片
+        // 歌曲列表
+        if (uiState.tracks.isEmpty()) {
             item {
-                HeroCard(
-                    cardColor = cardColor,
-                    onOpenDetail = onOpenDetail,
+                EmptyState()
+            }
+        } else {
+            items(uiState.tracks, key = { it.id }) { track ->
+                TrackItem(
+                    track = track,
+                    isSelected = track.id == uiState.currentTrack?.id,
+                    onClick = {
+                        viewModel.onEvent(MusicEvent.SelectTrack(track.id))
+                    }
                 )
             }
-
-            // 功能操作区域 (如扫描音乐)
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SectionTitle(title = "我的音乐")
-                    
-                    FilledTonalButton(
-                        onClick = { permissionLauncher.launch(storagePermission) },
-                        colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = Color(0xFF2A2F3A),
-                            contentColor = Color.White
-                        ),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.GraphicEq,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "扫描本地", style = MaterialTheme.typography.labelMedium)
-                    }
-                }
-            }
-
-            // 歌曲列表
-            if (uiState.tracks.isEmpty()) {
-                item {
-                    EmptyState()
-                }
-            } else {
-                items(uiState.tracks, key = { it.id }) { track ->
-                    TrackItem(
-                        track = track,
-                        isSelected = track.id == uiState.currentTrack?.id,
-                        onClick = {
-                            viewModel.onEvent(MusicEvent.SelectTrack(track.id))
-                        }
-                    )
-                }
-            }
-            
-            // 底部留白，防止被播放条遮挡
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-            }
+        }
+        
+        // 底部额外留白
+        item {
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }

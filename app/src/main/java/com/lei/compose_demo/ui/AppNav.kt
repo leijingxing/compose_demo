@@ -17,8 +17,8 @@ import com.lei.compose_demo.state.MusicViewModel
  * 应用导航路由定义。
  */
 object AppRoute {
-    // 音乐主页路由。
-    const val MUSIC = "music"
+    // 主页面（包含底部导航）。
+    const val MAIN = "main"
 
     // 播放详情页路由。
     const val PLAYER = "player"
@@ -58,15 +58,15 @@ fun ComposeDemoNavGraph(
     SharedTransitionLayout {
         NavHost(
             navController = navController,
-            startDestination = AppRoute.MUSIC,
+            startDestination = AppRoute.MAIN,
             enterTransition = { fadeIn() },
             exitTransition = { fadeOut() },
             popEnterTransition = { fadeIn() },
             popExitTransition = { fadeOut() }
         ) {
-            composable(AppRoute.MUSIC) {
-                MusicScreen(
-                    viewModel = musicViewModel,
+            composable(AppRoute.MAIN) {
+                MainScreen(
+                    musicViewModel = musicViewModel,
                     onOpenDetail = { navController.navigate(AppRoute.PLAYER) },
                     onOpenSearch = { navController.navigate(AppRoute.SEARCH) },
                     sharedTransitionScope = this@SharedTransitionLayout,
