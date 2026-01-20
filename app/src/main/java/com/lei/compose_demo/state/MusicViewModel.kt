@@ -17,6 +17,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import android.content.Intent
+import com.lei.compose_demo.service.MusicService
+
 /**
  * 音乐页面 ViewModel，负责管理 UI 状态。
  */
@@ -54,6 +57,31 @@ class MusicViewModel(
         )
         // 初始化时加载本地缓存。
         loadCachedTracks()
+    }
+
+    /**
+     * 更新通知栏服务状态。
+     */
+    private fun updateServiceState() {
+        val currentTrack = uiState.currentTrack ?: return
+        val isPlaying = uiState.playerState.isPlaying
+        
+        val intent = Intent(getApplication(), MusicService::class.java).apply {
+            action = MusicService.ACTION_UPDATE_STATE
+            putExtra(MusicService.EXTRA_TITLE, currentTrack.title)
+            putExtra(MusicService.EXTRA_ARTIST, currentTrack.artist)
+            putExtra(MusicService.EXTRA_IS_PLAYING, isPlaying)
+        }
+        
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                getApplication<Application>().startForegroundService(intent)
+            } else {
+                getApplication<Application>().startService(intent)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -140,6 +168,7 @@ class MusicViewModel(
         } else {
             stopProgressTicker()
         }
+        updateServiceState()
     }
 
     /**
@@ -177,6 +206,7 @@ class MusicViewModel(
         } else {
             stopProgressTicker()
         }
+        updateServiceState()
     }
 
     /**
@@ -214,6 +244,7 @@ class MusicViewModel(
         } else {
             stopProgressTicker()
         }
+        updateServiceState()
     }
 
     /**
@@ -253,6 +284,7 @@ class MusicViewModel(
         } else {
             stopProgressTicker()
         }
+        updateServiceState()
     }
 
     /**
@@ -421,6 +453,7 @@ class MusicViewModel(
             )
         )
         stopProgressTicker()
+        updateServiceState()
     }
 
     /**

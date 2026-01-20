@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.converter)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.media)
     implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
