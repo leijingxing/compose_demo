@@ -1,15 +1,9 @@
 package com.lei.compose_demo.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.lei.compose_demo.data.PlayerState
 import com.lei.compose_demo.data.Track
+import com.lei.compose_demo.ui.player.BackgroundVisualizer
 import com.lei.compose_demo.ui.player.PlayerLyricsPage
 import com.lei.compose_demo.ui.player.PlayerMainPage
 import com.lei.compose_demo.ui.player.PlayerTopBar
@@ -78,67 +73,75 @@ fun PlayerDetailScreen(
     // Pager 状态：2页（0: 主页, 1: 歌词）
     val pagerState = rememberPagerState(pageCount = { 2 })
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundBrush)
-            .systemBarsPadding() // 适配系统状态栏
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 1. 公共顶部导航栏 (Padding 移到这里处理，保证 Pager 全宽或者统一 Padding)
-        Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-            PlayerTopBar(onBack = onBack)
-        }
+    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+        // 1. 背景波形动画 (放在背景层)
+        BackgroundVisualizer(
+            isPlaying = playerState.isPlaying,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 2. 页面切换区域
-        HorizontalPager(
-            state = pagerState,
+        // 2. 内容层
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) { page ->
-            when (page) {
-                0 -> PlayerMainPage(
-                    currentTrack = currentTrack,
-                    playerState = playerState,
-                    onTogglePlay = onTogglePlay,
-                    onSeekTo = onSeekTo,
-                    onPrevious = onPrevious,
-                    onNext = onNext,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedVisibilityScope = animatedVisibilityScope
-                )
-
-                1 -> PlayerLyricsPage(
-                    playerState = playerState
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 3. 页面指示器 (Dots)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(20.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .systemBarsPadding() // 适配系统状态栏
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            repeat(2) { iteration ->
-                val color =
-                    if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.2f)
-                val size = if (pagerState.currentPage == iteration) 8.dp else 6.dp
-                Box(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .size(size)
-                )
+            // 公共顶部导航栏
+            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                PlayerTopBar(onBack = onBack)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 页面切换区域
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) { page ->
+                when (page) {
+                    0 -> PlayerMainPage(
+                        currentTrack = currentTrack,
+                        playerState = playerState,
+                        onTogglePlay = onTogglePlay,
+                        onSeekTo = onSeekTo,
+                        onPrevious = onPrevious,
+                        onNext = onNext,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+
+                    1 -> PlayerLyricsPage(
+                        playerState = playerState
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 3. 页面指示器 (Dots)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(2) { iteration ->
+                    val color =
+                        if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.2f)
+                    val size = if (pagerState.currentPage == iteration) 8.dp else 6.dp
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .size(size)
+                    )
+                }
             }
         }
     }

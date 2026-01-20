@@ -122,7 +122,7 @@ private fun AlbumCover(
                 if (currentTrack != null) {
                     with(sharedTransitionScope) {
                         modifier.sharedElement(
-                            state = rememberSharedContentState(key = "cover-${currentTrack.id}"),
+                            rememberSharedContentState(key = "cover-${currentTrack.id}"),
                             animatedVisibilityScope = animatedVisibilityScope
                         )
                     }
