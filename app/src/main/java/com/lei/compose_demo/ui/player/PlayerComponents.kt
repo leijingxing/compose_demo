@@ -38,8 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lei.compose_demo.data.PlayerState
-
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
 // --- 常量定义 ---
 val TitleColor = Color(0xFFF8FAFC)
 val SubtitleColor = Color(0xFF94A3B8)
@@ -51,6 +55,8 @@ val AccentIconColor = Color(0xFF0B0F14)
 val TagBackgroundColor = Color(0xFF1E293B)
 val TagTextColor = Color(0xFFE2E8F0)
 
+
+
 /**
  * 顶部导航栏。
  *
@@ -60,31 +66,45 @@ val TagTextColor = Color(0xFFE2E8F0)
 fun PlayerTopBar(onBack: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        IconButton(onClick = onBack) {
+        // 下拉返回按钮
+        IconButton(
+            onClick = onBack,
+            modifier = Modifier
+                .background(Color.White.copy(alpha = 0.05f), CircleShape)
+                .size(40.dp)
+        ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "返回",
-                tint = TitleColor
+                imageVector = Icons.Default.ExpandMore,
+                contentDescription = "收起",
+                tint = TitleColor,
+                modifier = Modifier.size(24.dp)
             )
         }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "播放详情",
-            color = TitleColor,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Box(
-            modifier = Modifier
-                .background(TagBackgroundColor, shape = RoundedCornerShape(999.dp))
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-        ) {
+
+        // 中间标题
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "PREMIUM",
-                color = TagTextColor,
-                style = MaterialTheme.typography.labelSmall
+                text = "PLAYING NOW",
+                color = SubtitleColor.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+            )
+        }
+
+        // 更多选项按钮
+        IconButton(
+            onClick = { /* TODO: Show menu */ },
+            modifier = Modifier
+                .background(Color.White.copy(alpha = 0.05f), CircleShape)
+                .size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = "更多",
+                tint = TitleColor,
+                modifier = Modifier.size(20.dp)
             )
         }
     }
