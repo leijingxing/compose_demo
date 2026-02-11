@@ -8,6 +8,7 @@ package com.lei.compose_demo.data
  * @param positionSeconds 当前播放位置（秒）。
  * @param durationSeconds 当前歌曲总时长（秒）。
  * @param currentTrackId 当前播放的歌曲 ID。
+ * @param fftBands FFT 频带强度列表（0.0 ~ 1.0）。
  */
 data class PlayerState(
     // 是否正在播放。
@@ -20,4 +21,6 @@ data class PlayerState(
     val durationSeconds: Int = 0,
     // 当前播放的歌曲 ID。
     val currentTrackId: String? = null,
+    // FFT 频带强度列表（0.0 ~ 1.0）。
+    val fftBands: List<Float> = List(size = 48) { 0f },
 )

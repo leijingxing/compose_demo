@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 import android.content.Intent
+import com.lei.compose_demo.service.AudioFftAnalyzer
 import com.lei.compose_demo.service.MusicService
 
 /**
@@ -39,6 +40,18 @@ class MusicViewModel(
     private val progressIntervalMs: Long = 1000L
     // 默认歌曲时长（秒）。
     private val defaultDurationSeconds: Int = 240
+    // FFT 频带数量。
+    private val fftBandCount: Int = 48
+    // 音频 FFT 采集器。
+    private val audioFftAnalyzer = AudioFftAnalyzer(
+        bandCount = fftBandCount,
+        onBandsUpdate = { bands ->
+            // 回调线程可能不是主线程，统一切回 ViewModel 协程更新状态。
+            viewModelScope.launch {
+                updateFftBands(fftBands = bands)
+            }
+        }
+    )
 
     // 当前 UI 状态。
     var uiState by mutableStateOf(createInitialState())
@@ -51,6 +64,16 @@ class MusicViewModel(
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     if (playbackState == Player.STATE_ENDED) {
                         selectNextTrack()
+                    }
+                    if (playbackState == Player.STATE_READY) {
+                        // 播放就绪时兜底绑定音频 Session，避免部分机型回调丢失。
+                        audioFftAnalyzer.attach(audioSessionId = player.audioSessionId)
+                    }
+                }
+
+                override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                    if (audioSessionId > 0) {
+                        audioFftAnalyzer.attach(audioSessionId = audioSessionId)
                     }
                 }
             }
@@ -145,6 +168,7 @@ class MusicViewModel(
         // 是否有可播放的 Uri。
         val canPlay = !currentTrack?.uri.isNullOrBlank()
         if (!canPlay) {
+            audioFftAnalyzer.clear()
             return
         }
         if (player.isPlaying) {
@@ -167,6 +191,7 @@ class MusicViewModel(
             startProgressTicker()
         } else {
             stopProgressTicker()
+            audioFftAnalyzer.clear()
         }
         updateServiceState()
     }
@@ -205,6 +230,7 @@ class MusicViewModel(
             startProgressTicker()
         } else {
             stopProgressTicker()
+            audioFftAnalyzer.clear()
         }
         updateServiceState()
     }
@@ -243,6 +269,7 @@ class MusicViewModel(
             startProgressTicker()
         } else {
             stopProgressTicker()
+            audioFftAnalyzer.clear()
         }
         updateServiceState()
     }
@@ -283,6 +310,7 @@ class MusicViewModel(
             startProgressTicker()
         } else {
             stopProgressTicker()
+            audioFftAnalyzer.clear()
         }
         updateServiceState()
     }
@@ -453,7 +481,26 @@ class MusicViewModel(
             )
         )
         stopProgressTicker()
+        audioFftAnalyzer.clear()
         updateServiceState()
+    }
+
+    /**
+     * 更新频谱频带状态。
+     *
+     * @param fftBands FFT 频带强度列表。
+     */
+    private fun updateFftBands(fftBands: List<Float>) {
+        // 当前播放器状态。
+        val currentState = uiState.playerState
+        // 状态内已有频带。
+        val oldBands = currentState.fftBands
+        if (oldBands.size == fftBands.size && oldBands == fftBands) {
+            return
+        }
+        uiState = uiState.copy(
+            playerState = currentState.copy(fftBands = fftBands)
+        )
     }
 
     /**
@@ -482,6 +529,8 @@ class MusicViewModel(
     override fun onCleared() {
         // 释放进度任务。
         stopProgressTicker()
+        // 释放 FFT 采集资源。
+        audioFftAnalyzer.release()
         // 释放播放器资源。
         player.release()
         super.onCleared()

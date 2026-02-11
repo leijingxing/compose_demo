@@ -1,6 +1,10 @@
 package com.lei.compose_demo.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -20,13 +24,16 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.lei.compose_demo.data.PlayerState
 import com.lei.compose_demo.data.Track
 import com.lei.compose_demo.ui.player.BackgroundVisualizer
@@ -66,6 +73,25 @@ fun PlayerDetailScreen(
 ) {
     // 系统返回键处理
     BackHandler(onBack = onBack)
+    // 当前上下文。
+    val context = LocalContext.current
+    // 音频采集权限申请器。
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ ->
+        // 权限结果由系统接管，此处无需额外状态处理。
+    }
+    // 首次进入详情页时申请录音权限，提升 FFT 兼容性。
+    LaunchedEffect(Unit) {
+        // 是否已授予录音权限。
+        val hasRecordAudioPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!hasRecordAudioPermission) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     // 页面背景渐变
     val backgroundBrush = remember { Brush.verticalGradient(colors = BackgroundColors) }
@@ -74,9 +100,10 @@ fun PlayerDetailScreen(
     val pagerState = rememberPagerState(pageCount = { 2 })
 
     Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
-        // 1. 背景波形动画 (放在背景层)
+        // 1. 背景波形动画（播放页与歌词页共用）
         BackgroundVisualizer(
             isPlaying = playerState.isPlaying,
+            fftBands = playerState.fftBands,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
 
